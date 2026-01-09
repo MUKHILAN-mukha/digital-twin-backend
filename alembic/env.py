@@ -1,27 +1,25 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
+from sqlalchemy import create_engine, pool
 from alembic import context
 
 from app.core.config import settings
 from app.db.base import Base
+from app.models import user  # noqa
 
 # Alembic Config object
 config = context.config
-
-# Override DB URL from environment
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Metadata for autogenerate
 target_metadata = Base.metadata
 
 
 def run_migrations_offline():
+    """Run migrations without DB connection."""
     context.configure(
         url=settings.DATABASE_URL,
         target_metadata=target_metadata,
@@ -34,13 +32,13 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
+    """Run migrations with DB connection."""
+    engine = create_engine(
+        settings.DATABASE_URL,
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
+    with engine.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
