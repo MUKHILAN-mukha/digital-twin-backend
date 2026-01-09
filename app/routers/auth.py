@@ -21,9 +21,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
     user = User(
         email=payload.email,
-        full_name=payload.full_name,
-        role=payload.role,
         hashed_password=hash_password(payload.password),
+        role=payload.role,
         is_active=True
     )
 
@@ -32,14 +31,13 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
     token = create_access_token({
-        "user_id": str(user.id),
+        "sub": str(user.id),
         "role": user.role
     })
 
     return {
         "access_token": token,
-        "role": user.role,
-        "user_id": str(user.id)
+        "token_type": "bearer"
     }
 
 
@@ -60,12 +58,11 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         )
 
     token = create_access_token({
-        "user_id": str(user.id),
+        "sub": str(user.id),
         "role": user.role
     })
 
     return {
         "access_token": token,
-        "role": user.role,
-        "user_id": str(user.id)
+        "token_type": "bearer"
     }
