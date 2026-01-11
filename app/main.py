@@ -1,28 +1,40 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.db.check import router as db_check_router
-from app.db.check import db_check as check_db
-from app.routers.auth import router as auth_router
+from app.db.base import Base
+from app.db.session import engine
+
+from app.routers import auth, student, parent
+from app.routers import student_profile
+from app.routers import student_events
+from app.routers import digital_twin
+from app.routers import admin
+from app.routers import ml
+from app.routers import analytics
+from app.routers import insights
+from app.routers import recommendations
+from app.routers import dashboard
+from app.routers import insight_reviews
+from app.routers import admin_dashboard
+
+
+
 
 app = FastAPI(title="Digital Twin Backend")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-app.include_router(auth_router)
-app.include_router(db_check_router)
-@app.get("/")
-def health():
-    return {"status": "backend alive"}
+app.include_router(auth.router)
+app.include_router(student.router)
+app.include_router(parent.router)
+app.include_router(student_profile.router)
+app.include_router(student_events.router)
+app.include_router(digital_twin.router)
+app.include_router(admin.router)
+app.include_router(ml.router)
+app.include_router(analytics.router)
+app.include_router(insights.router)
+app.include_router(recommendations.router)
+app.include_router(dashboard.router)
+app.include_router(insight_reviews.router)
+app.include_router(admin_dashboard.router)
 
-@app.get("/db-check")
-def db_check():
-    try:
-        check_db()
-        return {"db": "connected"}
-    except Exception as e:
-        return {"db": "error", "detail": str(e)}
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
